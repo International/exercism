@@ -19,15 +19,21 @@ defmodule RunLengthEncoder do
 
   end
 
-  defp rle_pairing(string) do
+  def rle_pairing(string) do
     Regex.scan(~r/(.(?=\1+)?)/, string) |> 
-    Enum.group_by(fn [first,last] -> first end) |>
     Enum.reduce {}, fn {key, list}, acc ->
       Tuple.append(acc, {Enum.count(list), key})
     end
   end
 
-  defp rle_word(string) do
-    rle_pairing(string) |> Tuple.to_list |> Enum.map(&to_string/1) |> Enum.join
+  def rle_word(string) do
+    rle_pairing(string) |> 
+    Tuple.to_list |> 
+    Enum.reduce("", fn {count, letter},acc -> 
+      acc <> to_string(count) <> letter 
+    end)
   end
 end
+
+# IO.inspect RunLengthEncoder.rle_pairing("HORSE")
+IO.inspect Regex.scan(~r/(.(?=\1+)?)/, "HOORRRRSSSSE")
