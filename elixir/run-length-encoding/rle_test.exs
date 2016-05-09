@@ -20,7 +20,6 @@ defmodule RunLengthEncoderTest do
     assert RunLengthEncoder.encode("HORSE") == "1H1O1R1S1E"
   end
 
-  @tag :pending
   test "an even more complex string" do
     assert RunLengthEncoder.encode("WWWWWWWWWWWWBWWWWWWWWWWWWBBBWWWWWWWWWWWWWWWWWWWWWWWWB") === "12W1B12W3B24W1B"
   end

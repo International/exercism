@@ -21,19 +21,24 @@ defmodule RunLengthEncoder do
 
   def rle_pairing(string) do
     Regex.scan(~r/(.(?=\1+)?)/, string) |> 
-    Enum.reduce {}, fn {key, list}, acc ->
-      Tuple.append(acc, {Enum.count(list), key})
+    Enum.reduce {}, fn [letter, _], acc ->
+      Tuple.append(acc, {1, letter})
     end
   end
 
   def rle_word(string) do
-    rle_pairing(string) |> 
-    Tuple.to_list |> 
-    Enum.reduce("", fn {count, letter},acc -> 
-      acc <> to_string(count) <> letter 
+    original_ordering = rle_pairing(string) |> Tuple.to_list
+    count_dict = Enum.reduce(original_ordering, %{}, fn {count, letter}, acc ->
+      
+      {_ign, new_map} = Map.get_and_update(acc, letter, fn val ->
+        {val, (val || 0) + count}
+      end)
+      
+      new_map
+    end)
+
+    original_ordering |> Enum.uniq |> Enum.reduce("", fn {_count, letter}, sacc ->
+      sacc <> to_string(Map.get(count_dict, letter)) <> letter
     end)
   end
 end
-
-# IO.inspect RunLengthEncoder.rle_pairing("HORSE")
-IO.inspect Regex.scan(~r/(.(?=\1+)?)/, "HOORRRRSSSSE")
