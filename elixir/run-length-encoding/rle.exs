@@ -16,29 +16,33 @@ defmodule RunLengthEncoder do
 
   @spec decode(String.t) :: String.t
   def decode(string) do
+    Regex.scan(~r/\d+\D|\D/, string) |>
+    List.flatten |>
+    Enum.map(fn scan ->
+      count = Regex.scan(~r/\d+/, scan) |>
+              List.flatten |> Enum.at(0)
+      if count == 0 do
+        scan
+      else
+        String.duplicate(
+          Regex.replace(~r/\d+(\D+)/, scan,"\\1"),
+          String.to_integer(count)
+        )
+      end
 
+    end) |>
+    Enum.join
   end
 
-  def rle_pairing(string) do
-    Regex.scan(~r/(.(?=\1+)?)/, string) |> 
-    Enum.reduce {}, fn [letter, _], acc ->
-      Tuple.append(acc, {1, letter})
-    end
+  defp rle_pairing(string) do
+    Regex.scan(~r/([a-zA-Z])\1*/, string) |>
+    Enum.map(fn e -> Enum.take(e,1) end) |>
+    List.flatten
   end
 
-  def rle_word(string) do
-    original_ordering = rle_pairing(string) |> Tuple.to_list
-    count_dict = Enum.reduce(original_ordering, %{}, fn {count, letter}, acc ->
-      
-      {_ign, new_map} = Map.get_and_update(acc, letter, fn val ->
-        {val, (val || 0) + count}
-      end)
-      
-      new_map
-    end)
-
-    original_ordering |> Enum.uniq |> Enum.reduce("", fn {_count, letter}, sacc ->
-      sacc <> to_string(Map.get(count_dict, letter)) <> letter
+  defp rle_word(string) do
+    rle_pairing(string) |> Enum.reduce("", fn word, sacc ->
+      sacc <> to_string(String.length(word)) <> String.at(word, 0)
     end)
   end
 end
